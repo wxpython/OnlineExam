@@ -6,11 +6,11 @@ import random
 import hashlib
 import os
 
-name = '381078SX007'        # 一评账号
+name = '381078YW005'        # 一评账号
 otherUser = '381078SX030'   # 二评账号
 pwd = '123'                 # 帐号密码
 
-qName = '24'                # 试题在页面显示的第几题
+qName = '5'                # 试题在页面显示的第几题
 
 
 
@@ -69,9 +69,6 @@ class OnlineMark(object):
         f = self.s.get(hostURL, headers = p1)
         self.hostIP = re.search('http://(.+?)/', f.url).group(1)
         self.hostURL = f.url
-        # print(self.hostIP)
-        # exit()
-
         PaperList = re.search('PaperList = (\[.+?\])', f.text).group(1)
         # print(PaperList)
         PaperList = PaperList.replace('true', 'True')
@@ -94,6 +91,7 @@ class OnlineMark(object):
                 qId = str(qId2)
                 # print(TestID, qId, qName)
                 return TestID, qId
+        return None, None
 
 
 
@@ -227,34 +225,45 @@ def getHost(url, matchString):
     res = requests.get(url)
     res.encoding = 'gb2312'
     # print(res.text)
-    pattern = re.compile(f'href="http://(.+?)">.+%s'%matchString)
-    # print(pattern)
-    h = pattern.search(res.text).group(1)
+    try:
+        pattern = re.compile(f'href="http://(.+?)">.+%s'%matchString)
+        # print(pattern)
+        h = pattern.search(res.text).group(1)
+    except AttributeError:
+        raise Exception('未找到匹配的host')
     if '/' in h:
         h = h[:-1]
     return h
 
 
-matchString = '8数'
-host = getHost(url, matchString)
-# print(host)
-# exit()
-if not os.path.exists(f"{name}.json"):
-    OnMark = OnlineMark(name, pwd, host)
-    lessonID, quesID = OnMark.login()
-    print(lessonID, quesID)
-    dic = OnMark.getPaper(lessonID, quesID)
-    OnMark.logout()
-    # print(dic)
-    with open(f"{name}.json", "w") as outfile:
-            json.dump(dic, outfile)
 
-# 读取本地 JSON 文件
-with open(f"{name}.json", "r") as infile:
-    data = json.load(infile)
-# print(data)
-# exit()
-OtherMark = OnlineMark(otherUser, pwd, host)
-lessonID, quesID = OtherMark.login()
-OtherMark.getQuestion(lessonID, quesID, data)
-OtherMark.logout()
+
+
+if __name__ == '__main__':
+    matchString = '8语'
+    host = getHost(url, matchString)
+    print(host)
+    # exit()
+    if not os.path.exists(f"{name}.json"):
+        OnMark = OnlineMark(name, pwd, host)
+        lessonID, quesID = OnMark.login()
+        if lessonID:
+            print(f'"TestID":{lessonID},"QuesID":{quesID}')
+            dic = OnMark.getPaper(lessonID, quesID)
+            OnMark.logout()
+            # print(dic)
+            with open(f"{name}.json", "w") as outfile:
+                    json.dump(dic, outfile)
+        else:
+            print('没有这个题号！')
+            exit()
+    # exit()
+    # 读取本地 JSON 文件
+    with open(f"{name}.json", "r") as infile:
+        data = json.load(infile)
+    # print(data)
+    # exit()
+    OtherMark = OnlineMark(otherUser, pwd, host)
+    lessonID, quesID = OtherMark.login()
+    OtherMark.getQuestion(lessonID, quesID, data)
+    OtherMark.logout()
