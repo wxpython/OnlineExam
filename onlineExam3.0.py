@@ -5,14 +5,17 @@ import time
 import random
 import hashlib
 import os
+from urllib.parse import quote
 
-name = '381078YW005'        # 一评账号
-otherUser = '381078SX030'   # 二评账号
+Accounts = [
+    '381078SW015',
+    '381078SW006']        # 一评账号
+otherUser = '381078SW030'   # 二评账号
 pwd = '123'                 # 帐号密码
 
-qName = '5'                # 试题在页面显示的第几题
+qName = 'SW22'                # 试题在页面显示的第几题
 
-
+matchString = '初二数学'
 
 
 url = 'http://xyyj.jsleascent.com'
@@ -40,8 +43,11 @@ class OnlineMark(object):
         pwd = m.hexdigest()
 
         hostURL = self.hostURL
+        # 去掉结尾空格
+        # hostURL = "http://115.29.243.122:8088/"
         hostIP = self.hostIP
         url = hostURL + 'account/Logon'
+        print(url)
         h = {
             'Host': hostIP,
             'Accept': 'text/html, */*; q=0.01',
@@ -55,7 +61,11 @@ class OnlineMark(object):
         }
         data = f'UserID={name}&UserPW={pwd}'
         f = self.s.post(url,data=data,headers=h)
-
+        if f.json()['Text'] == '用户名不存在':
+            print('用户名不存在')
+            exit()
+        else:
+            print('登录成功')
         p1 = {
             'Host': hostIP,
             'Connection': 'keep-alive',
@@ -69,6 +79,7 @@ class OnlineMark(object):
         f = self.s.get(hostURL, headers = p1)
         self.hostIP = re.search('http://(.+?)/', f.url).group(1)
         self.hostURL = f.url
+
         PaperList = re.search('PaperList = (\[.+?\])', f.text).group(1)
         # print(PaperList)
         PaperList = PaperList.replace('true', 'True')
@@ -210,19 +221,26 @@ class OnlineMark(object):
                 bwId = item['BWRID']
 
                 url = hostURL + 'home/SetMark'
-                rnd = str(random.randint(1000,3000))
+                rnd = str(random.randint(1000,4000) * 3)
                 try:
-                    mark = int(dic[paperId]['Mark'].split('.')[0])
+                    mark = quote(dic[paperId]['SmallQuesMark'])
                 except:
-                    mark = 0
+                    # 没有获取该题的得分，则跳过
+                    continue
                 data = f'testId={lessonID}&questionId={quesID}&paperId={paperId}&score={str((mark))}&bwId={bwId}&rowId={rowId}&markType=0&needReleaseNum=2&gfNum=0&elapsedTime={rnd}&sAnns=&flag=0&arb=0&ysf=%22%22&isdebug=0'
-                #        testId=6&questionId=4&paperId=XY2582_22123923_02B&score=6&bwId=1216368&rowId=1298&markType=0&needReleaseNum=2&gfNum=0&elapsedTime=26513&sAnns=&flag=0&arb=0&ysf=%22%22&isdebug=0
+                #        testId=2&questionId=1&paperId=XY1082_14131641_01A&score=4%2C4%2C4%2C4%2C4%2C4%2C4%2C4&bwId=1282996&rowId=234217&markType=0&needReleaseNum=2&gfNum=0&elapsedTime=336044&sAnns=&flag=0&arb=0&ysf=%22%22&isdebug=0
                 f = self.s.post(url,data=data,headers=header)
                 print(f.text)
-                time.sleep(int(rnd)/1000)
+                time.sleep(random.randint(1000,2500)/1000)
+                i += 1
+                if i == 100:
+                    exit()
+
+
+
 
 def getHost(url, matchString):
-    res = requests.get(url)
+    res = requests.get(url)   
     res.encoding = 'gb2312'
     # print(res.text)
     try:
@@ -239,30 +257,104 @@ def getHost(url, matchString):
 
 
 
+from typing import List, Dict, Callable, Any
+
+def read_json_files(file_names: List[str]) -> List[Dict[str, Any]]:
+    """
+    读取多个 JSON 文件并返回它们的内容列表。
+    
+    Args:
+        file_names: JSON 文件名列表
+        
+    Returns:
+        List[Dict[str, Any]]: 包含每个 JSON 文件内容的字典列表
+    """
+    data_list = []
+    for file_name in file_names:
+        file_name = file_name + '.json'
+        try:
+            with open(file_name, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                data_list.append(data)
+        except FileNotFoundError:
+            print(f"警告: 文件 {file_name} 未找到，跳过")
+        except json.JSONDecodeError as e:
+            print(f"警告: 文件 {file_name} 不是有效的 JSON 格式，跳过。错误: {e}")
+    return data_list
+
+def merge_json_files(file_names: List[str], output_file: str, merge_func: Callable[[Dict[str, Any], Dict[str, Any]], Dict[str, Any]] = None) -> None:
+    """
+    读取多个 JSON 文件并合并它们的内容到一个新的 JSON 文件。
+    
+    Args:
+        file_names: JSON 文件名列表
+        output_file: 输出文件名
+        merge_func: 合并函数，默认为简单的字典合并，后面的 JSON 文件会覆盖前面的同名键
+    """
+    # 读取所有 JSON 文件
+    data_list = read_json_files(file_names)
+    
+    # 如果没有数据，直接返回
+    if not data_list:
+        print("没有有效的 JSON 数据可以合并")
+        return
+    
+    # 如果没有提供自定义合并函数，使用默认的字典合并
+    if merge_func is None:
+        # 初始化合并数据为第一个 JSON 文件的数据
+        merged_data = data_list[0].copy()
+        # 逐个合并后续的 JSON 文件数据
+        for data in data_list[1:]:
+            merged_data.update(data)
+    else:
+        # 使用自定义合并函数
+        merged_data = data_list[0].copy()
+        for data in data_list[1:]:
+            merged_data = merge_func(merged_data, data)
+    
+    # 写入合并后的数据到新的 JSON 文件
+    try:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(merged_data, f, ensure_ascii=False, indent=4)
+        print(f"已将 JSON 数据合并到 {output_file}")
+    except IOError as e:
+        print(f"写入文件 {output_file} 时出错: {e}")
+
+
 if __name__ == '__main__':
-    matchString = '8语'
     host = getHost(url, matchString)
+    # 去除host末尾空格
+    host = host.strip()
     print(host)
     # exit()
-    if not os.path.exists(f"{name}.json"):
-        OnMark = OnlineMark(name, pwd, host)
-        lessonID, quesID = OnMark.login()
-        if lessonID:
-            print(f'"TestID":{lessonID},"QuesID":{quesID}')
-            dic = OnMark.getPaper(lessonID, quesID)
-            OnMark.logout()
-            # print(dic)
-            with open(f"{name}.json", "w") as outfile:
-                    json.dump(dic, outfile)
-        else:
-            print('没有这个题号！')
-            exit()
-    # exit()
-    # 读取本地 JSON 文件
-    with open(f"{name}.json", "r") as infile:
+
+    for name in Accounts:
+        if not os.path.exists(f"{name}.json"):
+            OnMark = OnlineMark(name, pwd, host)
+            lessonID, quesID = OnMark.login()
+            if lessonID:
+                print(f'"TestID":{lessonID},"QuesID":{quesID}')
+                dic = OnMark.getPaper(lessonID, quesID)
+                OnMark.logout()
+                # print(dic)
+                with open(f"{name}.json", "w") as outfile:
+                        json.dump(dic, outfile)
+            else:
+                print('没有这个题号！')
+                exit()
+
+    dataFile = Accounts[0][6:8] + qName
+    if len(Accounts) > 1:
+        if not os.path.exists(f"{dataFile}.json"):
+            merge_json_files(Accounts, dataFile + '.json')
+    else:
+        dataFile = Accounts[0]
+
+    # 读取本地 JSON 文件（一评数据）
+    with open(f"{dataFile}.json", "r") as infile:
         data = json.load(infile)
     # print(data)
-    # exit()
+    exit()
     OtherMark = OnlineMark(otherUser, pwd, host)
     lessonID, quesID = OtherMark.login()
     OtherMark.getQuestion(lessonID, quesID, data)
