@@ -22,81 +22,9 @@
 # exit()
 
 
-import json
-from typing import List, Dict, Callable, Any
 
-def read_json_files(file_names: List[str]) -> List[Dict[str, Any]]:
-    """
-    读取多个 JSON 文件并返回它们的内容列表。
-    
-    Args:
-        file_names: JSON 文件名列表
-        
-    Returns:
-        List[Dict[str, Any]]: 包含每个 JSON 文件内容的字典列表
-    """
-    data_list = []
-    for file_name in file_names:
-        try:
-            with open(file_name, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                data_list.append(data)
-        except FileNotFoundError:
-            print(f"警告: 文件 {file_name} 未找到，跳过")
-        except json.JSONDecodeError as e:
-            print(f"警告: 文件 {file_name} 不是有效的 JSON 格式，跳过。错误: {e}")
-    return data_list
-
-def merge_json_files(file_names: List[str], output_file: str, merge_func: Callable[[Dict[str, Any], Dict[str, Any]], Dict[str, Any]] = None) -> None:
-    """
-    读取多个 JSON 文件并合并它们的内容到一个新的 JSON 文件。
-    
-    Args:
-        file_names: JSON 文件名列表
-        output_file: 输出文件名
-        merge_func: 合并函数，默认为简单的字典合并，后面的 JSON 文件会覆盖前面的同名键
-    """
-    # 读取所有 JSON 文件
-    data_list = read_json_files(file_names)
-    
-    # 如果没有数据，直接返回
-    if not data_list:
-        print("没有有效的 JSON 数据可以合并")
-        return
-    
-    # 如果没有提供自定义合并函数，使用默认的字典合并
-    if merge_func is None:
-        # 初始化合并数据为第一个 JSON 文件的数据
-        merged_data = data_list[0].copy()
-        # 逐个合并后续的 JSON 文件数据
-        for data in data_list[1:]:
-            merged_data.update(data)
-    else:
-        # 使用自定义合并函数
-        merged_data = data_list[0].copy()
-        for data in data_list[1:]:
-            merged_data = merge_func(merged_data, data)
-    
-    # 写入合并后的数据到新的 JSON 文件
-    try:
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(merged_data, f, ensure_ascii=False, indent=4)
-        print(f"已将 JSON 数据合并到 {output_file}")
-    except IOError as e:
-        print(f"写入文件 {output_file} 时出错: {e}")
-
-# 示例用法
-if __name__ == "__main__":
-    # 定义 JSON 文件名列表
-    json_files = ["1.json", "2.json"]
-    
-    # 定义输出文件名
-    output_file = "merged_data.json"
-    
-    # 如果需要自定义合并逻辑，可以定义一个合并函数，例如：
-    # def custom_merge(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
-    #     # 自定义合并逻辑
-    #     pass
-    
-    # 执行合并操作
-    merge_json_files(json_files, output_file)
+a = [
+    {"BWRID":1161303,"WRID":0,"RowID":274945,"QuesID":6,"PaperId":"XY0982_27132250_24A","PaperPath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0032\\XY0982_27132250_24A_6.jpg&format=base64","SmallQuesMark":null,"StrAnnotations":null,"NeedReleaseNum":2,"ILeft":0,"ITop":0,"IWidth":0,"IHeight":0,"IRotate":0.0,"ICroped":1,"PaperImagePath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0032\\XY0982_27132250_24A_6.jpg","TestId":2,"MarkType":0,"MarkUserGroup":"","MarkTime":null,"MarkScore":null,"ImageData":null,"AnnStr":null},
+    {"BWRID":1161304,"WRID":0,"RowID":275207,"QuesID":6,"PaperId":"XY0982_27132333_11A","PaperPath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0034\\XY0982_27132333_11A_6.jpg&format=base64","SmallQuesMark":null,"StrAnnotations":null,"NeedReleaseNum":2,"ILeft":0,"ITop":0,"IWidth":0,"IHeight":0,"IRotate":0.0,"ICroped":1,"PaperImagePath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0034\\XY0982_27132333_11A_6.jpg","TestId":2,"MarkType":0,"MarkUserGroup":"","MarkTime":null,"MarkScore":null,"ImageData":null,"AnnStr":null},
+    {"BWRID":1161305,"WRID":0,"RowID":275531,"QuesID":6,"PaperId":"XY0982_27132402_15A","PaperPath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0035\\XY0982_27132402_15A_6.jpg&format=base64","SmallQuesMark":null,"StrAnnotations":null,"NeedReleaseNum":2,"ILeft":0,"ITop":0,"IWidth":0,"IHeight":0,"IRotate":0.0,"ICroped":1,"PaperImagePath":"http://47.97.164.128:8600/File/Get?FileInfo=D:\\XYCZ250626QM\\8NJ\\Crop2SX\\XY0982\\OMR0035\\XY0982_27132402_15A_6.jpg","TestId":2,"MarkType":0,"MarkUserGroup":"","MarkTime":null,"MarkScore":null,"ImageData":null,"AnnStr":null}]
+print(a)

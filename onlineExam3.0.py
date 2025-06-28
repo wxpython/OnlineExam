@@ -5,15 +5,14 @@ import time
 import random
 import hashlib
 import os
-from urllib.parse import quote
+from urllib.parse import quote 
 
 Accounts = [
-    '381078SW015',
-    '381078SW006']        # 一评账号
-otherUser = '381078SW030'   # 二评账号
+    '381078SX005']        # 一评账号
+otherUser = '381078SX006'   # 二评账号
 pwd = '123'                 # 帐号密码
 
-qName = 'SW22'                # 试题在页面显示的第几题
+qName = '21'                # 试题在页面显示的第几题
 
 matchString = '初二数学'
 
@@ -201,12 +200,13 @@ class OnlineMark(object):
         i = 0
         while True:
             url = hostURL + 'home/GetQuestion'
-            data = f'testId={lessonID}&questionId={quesID}&count=3&lidPre=2&qidPre=3&refresh=0&arb=0&QOControlInfo=0&MySetting=0&ImgHandler=2'
+            data = f'testId={lessonID}&questionId={quesID}&count=3&lidPre=2&qidPre=6&refresh=0&arb=0&QOControlInfo=0&MySetting=0&ImgHandler=2'
             f = self.s.post(url,data=data,headers=header)
             res = f.json()
             # print(res)
             if len(res) == 0:
                 print('刷新任务...')
+                # exit()
                 i += 1
                 time.sleep(3)
                 if i == 3:
@@ -219,22 +219,22 @@ class OnlineMark(object):
                 rowId = item['RowID']
                 paperId = item['PaperId']
                 bwId = item['BWRID']
-
+                # print(f'rowId:{rowId},paperId:{paperId},bwId:{bwId}')
                 url = hostURL + 'home/SetMark'
                 rnd = str(random.randint(1000,4000) * 3)
                 try:
                     mark = quote(dic[paperId]['SmallQuesMark'])
                 except:
                     # 没有获取该题的得分，则跳过
+                    print('没有获取该题的得分')
                     continue
                 data = f'testId={lessonID}&questionId={quesID}&paperId={paperId}&score={str((mark))}&bwId={bwId}&rowId={rowId}&markType=0&needReleaseNum=2&gfNum=0&elapsedTime={rnd}&sAnns=&flag=0&arb=0&ysf=%22%22&isdebug=0'
                 #        testId=2&questionId=1&paperId=XY1082_14131641_01A&score=4%2C4%2C4%2C4%2C4%2C4%2C4%2C4&bwId=1282996&rowId=234217&markType=0&needReleaseNum=2&gfNum=0&elapsedTime=336044&sAnns=&flag=0&arb=0&ysf=%22%22&isdebug=0
                 f = self.s.post(url,data=data,headers=header)
                 print(f.text)
-                time.sleep(random.randint(1000,2500)/1000)
-                i += 1
-                if i == 100:
-                    exit()
+                time.sleep(random.randint(1000,3000)/1000)
+
+            # exit()
 
 
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     with open(f"{dataFile}.json", "r") as infile:
         data = json.load(infile)
     # print(data)
-    exit()
+    # exit()
     OtherMark = OnlineMark(otherUser, pwd, host)
     lessonID, quesID = OtherMark.login()
     OtherMark.getQuestion(lessonID, quesID, data)
