@@ -8,13 +8,13 @@ import os
 from urllib.parse import quote 
 
 Accounts = [
-    '381078SX005']        # 一评账号
-otherUser = '381078SX006'   # 二评账号
+    '381079SX005']          # 一评账号
+otherUser = '381079SX009'   # 二评账号
 pwd = '123'                 # 帐号密码
 
-qName = '21'                # 试题在页面显示的第几题
+qName = '20'                # 试题在页面显示的第几题
 
-matchString = '初二数学'
+# matchString = '初三数学'
 
 
 url = 'http://xyyj.jsleascent.com'
@@ -41,12 +41,12 @@ class OnlineMark(object):
         m.hexdigest()
         pwd = m.hexdigest()
 
-        hostURL = self.hostURL
+        hostURL = self.hostURL  
         # 去掉结尾空格
         # hostURL = "http://115.29.243.122:8088/"
         hostIP = self.hostIP
         url = hostURL + 'account/Logon'
-        print(url)
+        # print(url)
         h = {
             'Host': hostIP,
             'Accept': 'text/html, */*; q=0.01',
@@ -61,10 +61,15 @@ class OnlineMark(object):
         data = f'UserID={name}&UserPW={pwd}'
         f = self.s.post(url,data=data,headers=h)
         if f.json()['Text'] == '用户名不存在':
-            print('用户名不存在')
+            return False
             exit()
         else:
             print('登录成功')
+            return True
+        
+    def getTestID(self):
+        hostIP = self.hostIP
+        hostURL = self.hostURL  
         p1 = {
             'Host': hostIP,
             'Connection': 'keep-alive',
@@ -201,7 +206,7 @@ class OnlineMark(object):
         while True:
             url = hostURL + 'home/GetQuestion'
             data = f'testId={lessonID}&questionId={quesID}&count=3&lidPre=2&qidPre=6&refresh=0&arb=0&QOControlInfo=0&MySetting=0&ImgHandler=2'
-            f = self.s.post(url,data=data,headers=header)
+            f = self.s.post(url,data=data,headers=header, allow_redirects=False)
             res = f.json()
             # print(res)
             if len(res) == 0:
@@ -239,20 +244,28 @@ class OnlineMark(object):
 
 
 
-def getHost(url, matchString):
+def getHost(url):
+    """
+    返回阅卷地址列表。
+    """
     res = requests.get(url)   
-    res.encoding = 'gb2312'
     # print(res.text)
-    try:
-        pattern = re.compile(f'href="http://(.+?)">.+%s'%matchString)
-        # print(pattern)
-        h = pattern.search(res.text).group(1)
-    except AttributeError:
-        raise Exception('未找到匹配的host')
-    if '/' in h:
-        h = h[:-1]
-    return h
-
+    url_pattern =  r'(?<=href="http://)[\d.]+:\d+(?=\s*/?\s*")'
+    urls = re.findall(url_pattern, res.text)
+    return urls
+    # print(urls)
+    # exit()
+    # try:
+    #     pattern = re.compile(f'href="http://(.+?)">.+%s'%matchString)
+    #     # print(pattern)
+    #     h = pattern.search(res.text).group(1)
+    # except AttributeError:
+    #     raise Exception('未找到匹配的host')
+    # if '/' in h:
+    #     h = h[:-1]
+    # exit()
+    # return h
+    
 
 
 
@@ -322,16 +335,20 @@ def merge_json_files(file_names: List[str], output_file: str, merge_func: Callab
 
 
 if __name__ == '__main__':
-    host = getHost(url, matchString)
-    # 去除host末尾空格
-    host = host.strip()
-    print(host)
-    # exit()
-
+    AllHost = getHost(url)
+    # print(AllHost)
+    host = ''
     for name in Accounts:
+        # print(name)
         if not os.path.exists(f"{name}.json"):
-            OnMark = OnlineMark(name, pwd, host)
-            lessonID, quesID = OnMark.login()
+            for h in AllHost:
+                OnMark = OnlineMark(name, pwd, h)
+                if OnMark.login():
+                    host = h
+                    lessonID, quesID = OnMark.getTestID()
+                    break
+                else:
+                    time.sleep(1.5)
             if lessonID:
                 print(f'"TestID":{lessonID},"QuesID":{quesID}')
                 dic = OnMark.getPaper(lessonID, quesID)
@@ -355,7 +372,20 @@ if __name__ == '__main__':
         data = json.load(infile)
     # print(data)
     # exit()
-    OtherMark = OnlineMark(otherUser, pwd, host)
-    lessonID, quesID = OtherMark.login()
-    OtherMark.getQuestion(lessonID, quesID, data)
+
+    if  host == '':
+        for h in AllHost:
+                OtherMark = OnlineMark(otherUser, pwd, h)
+                if OtherMark.login():
+                    host = h
+                    lessonID, quesID = OtherMark.getTestID()
+                    OtherMark.getQuestion(lessonID, quesID, data)
+                    break
+                else:
+                    time.sleep(1.5)
+    else:
+        OtherMark = OnlineMark(otherUser, pwd, host)
+        if OtherMark.login():
+            lessonID, quesID = OtherMark.getTestID()
+        OtherMark.getQuestion(lessonID, quesID, data)
     OtherMark.logout()
