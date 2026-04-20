@@ -253,6 +253,11 @@ class OnlineMark:
                 time.sleep(random.uniform(1, refresh_delay))
 
 
+
+
+
+
+
 def getHost(url):
     """返回阅卷地址列表"""
     res = requests.get(url)
@@ -267,3 +272,25 @@ def merge_paper_data(data_list):
     for data in data_list:
         merged.update(data)
     return merged
+
+
+
+'''
+POST http://118.178.170.16:9090/home/QuesProgress HTTP/1.1
+Host: 118.178.170.16:9090
+Proxy-Connection: keep-alive
+Content-Length: 22
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36
+Origin: http://118.178.170.16:9090
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://118.178.170.16:9090/home/index
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9
+Cookie: ASP.NET_SessionId=oletxk5jccfoyuytvxkepfxe
+
+TestID=3&QuesID=9&ur=0
+
+'''
