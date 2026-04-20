@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}新建任务 - 网上阅卷系统{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h4 class="mb-4">新建阅卷任务</h4>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">任务名称 <span class="text-danger">*（随意取名）</span></label>
+                    <input type="text" class="form-control" name="task_name" required placeholder="例如: 初三数学第20题" value="初三数学第20题">
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">一评账号 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="first_accounts" required
+                               placeholder="多个账号用逗号分隔，如: 381079SX005,381079SX006" value="381079SX005">
+                        <small class="text-muted">用于获取已批改的评分数据</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">二评账号 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="second_account" required
+                               placeholder="例如: 381079SX006" value="381079SX006">
+                        <small class="text-muted">用于自动提交评分</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">试题名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="question_name" required
+                               placeholder="试题名称，看下面的图，圈圈里那个">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">提交间隔（秒）</label>
+                        <input type="number" class="form-control" name="refresh_delay"
+                               value="3" min="1" max="60" placeholder="提交数据的间隔时间" >
+                        <small class="text-muted">每张试卷提交的时间，默认3秒</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="display: none;">阅卷系统密码 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="mark_password" style="display: none;" required placeholder="阅卷系统登录密码" value="123">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="display: none;">服务器地址</label>
+                        <input type="text" class="form-control" name="server_url" style="display: none;"
+                               value="http://xyyj.jsleascent.com" placeholder="阅卷系统入口URL">
+                    </div>
+                    
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">创建任务</button>
+                    <a href="/" class="btn btn-outline-secondary">取消</a>
+                </div>
+            </form>
+        </div>
+        <div class="mt-3 text-center">！！！ 试题名称在这里！！！ </div>
+        <img src="/static/img/试题名称.png" class="img-fluid mt-4" alt="任务创建示例">
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}注册 - 网上阅卷系统{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h3 class="text-center mb-4">注册新用户</h3>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" name="username" required minlength="1" maxlength="80" autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" name="password" required minlength="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-control" name="password2" required minlength="1">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mb-3">注册</button>
+                <div class="text-center">
+                    <a href="/login">已有账号？去登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
