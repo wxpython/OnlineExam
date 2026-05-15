@@ -252,16 +252,24 @@ class OnlineMark:
             url = hostURL + 'home/GetQuestion'
             data = f'testId={lessonID}&questionId={quesID}&count=3&lidPre=2&qidPre=6&refresh=0&arb=0&QOControlInfo=0&MySetting=0&ImgHandler=2'
             f = self.s.post(url, data=data, headers=header, allow_redirects=False)
+            if f.status_code != 200:
+                self._log(f'GetQuestion请求失败: HTTP {f.status_code}')
+                i += 1
+                time.sleep(refresh_delay + i)
+                continue
             res = f.json()
             if len(res) == 0:
-                self._log('刷新任务...')
-                i += 1
-                time.sleep(refresh_delay)
-                if i == 3:
-                    self._log('本次任务已完成!')
+                if progress_api_callback:
+                    progress_api_callback(lessonID, quesID)
+                progress = self.getProgress(lessonID, quesID)
+                if progress and progress.get('total', 0) > 0 and progress['marked'] >= progress['total']:
+                    self._log(f'任务已完成: {progress["marked"]}/{progress["total"]}')
                     break
-                else:
-                    continue
+                i += 1
+                self._log(f'暂无新试卷，等待 {refresh_delay + i} 秒...')
+                time.sleep(refresh_delay + i)
+                continue
+            i = 0
             for item in res:
                 if self._stopped:
                     self._log('任务已停止')
@@ -293,7 +301,7 @@ class OnlineMark:
                     progress_callback(total_marked)
                 if progress_api_callback:
                     progress_api_callback(lessonID, quesID)
-                time.sleep(random.uniform(1, refresh_delay))
+                time.sleep(random.uniform(2, refresh_delay))
 
 
 
