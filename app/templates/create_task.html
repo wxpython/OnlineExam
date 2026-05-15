@@ -25,7 +25,16 @@
                         <small class="text-muted">用于自动提交评分</small>
                     </div>
                 </div>
-
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">一评账号密码 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="mark_password" required placeholder="一评账号登录密码" value="123">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">二评账号密码 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="second_password" required placeholder="二评账号登录密码" value="123">
+                    </div>
+                </div>
                 <div class="row mb-3">
                     
                     <div class="col-md-6">
@@ -41,17 +50,11 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold" style="display: none;">阅卷系统密码 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="mark_password" style="display: none;" required placeholder="阅卷系统登录密码" value="123">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold" style="display: none;">服务器地址</label>
-                        <input type="text" class="form-control" name="server_url" style="display: none;"
-                               value="http://xyyj.jsleascent.com" placeholder="阅卷系统入口URL">
-                    </div>
-                    
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold" style="display: none;">服务器地址</label>
+                    <input type="text" class="form-control" name="server_url" style="display: none;"
+                           value="http://www.jsleascent.com/webyj/xyyj.html" placeholder="阅卷系统入口URL">
                 </div>
 
                 <div class="d-flex gap-2">

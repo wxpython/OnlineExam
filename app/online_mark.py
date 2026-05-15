@@ -60,6 +60,9 @@ class OnlineMark:
         if result.get('Text') == '用户名不存在':
             self._log(f'账号 {name} 登录失败: 用户名不存在')
             return False
+        if result.get('Text') == '登录密码不正确':
+            self._log(f'账号 {name} 登录失败: 密码错误')
+            return False
         else:
             self._log(f'账号 {name} 登录成功')
             return True
@@ -178,14 +181,52 @@ class OnlineMark:
         self._log(f'共提取试卷份数: {len(paperDic)}')
         return paperDic
 
-    def getQuestion(self, lessonID, quesID, dic, progress_callback=None, refresh_delay=3):
+    def getProgress(self, lessonID, quesID):
+        """通过 GetPersonWorkNumInfo 获取批改进度
+
+        Args:
+            lessonID: 课程ID (TestID)
+            quesID: 试题ID (questionId)
+
+        Returns:
+            dict: {'total': 总数, 'marked': 已批改数} 或 None
+        """
+        hostURL = f'http://{self.hostIP}/'
+        hostIP = self.hostIP
+        url = hostURL + 'home/GetPersonWorkNumInfo'
+        header = {
+            'Host': hostIP,
+            'Connection': 'keep-alive',
+            'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': hostURL[:-1],
+            'Referer': hostURL + 'home/index',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+        }
+        data = f'TestID={lessonID}&questionId={quesID}'
+        try:
+            f = self.s.post(url, data=data, headers=header)
+            result = f.json()
+            sum_info = result.get('Sum', [{}])[0] if result.get('Sum') else {}
+            total = sum_info.get('TotalNum', 0)
+            marked = sum_info.get('MarkedNum', 0)
+            return {'total': total, 'marked': marked}
+        except Exception as e:
+            self._log(f'获取进度失败: {e}')
+            return None
+
+    def getQuestion(self, lessonID, quesID, dic, progress_callback=None, progress_api_callback=None, refresh_delay=3):
         """提交评分，支持进度回调和停止控制
 
         Args:
             lessonID: 课程ID
             quesID: 试题ID
             dic: 评分数据字典
-            progress_callback: 进度回调函数 callback(marked, total)
+            progress_callback: 进度回调函数 callback(marked)
+            progress_api_callback: API进度回调函数 callback(lessonID, quesID)
             refresh_delay: 提交数据时的延迟时间（秒），默认3秒
         """
         hostURL = f'http://{self.hostIP}/'
@@ -250,19 +291,19 @@ class OnlineMark:
                     total_marked += 1
                 if progress_callback:
                     progress_callback(total_marked)
+                if progress_api_callback:
+                    progress_api_callback(lessonID, quesID)
                 time.sleep(random.uniform(1, refresh_delay))
 
 
 
-
-
-
-
 def getHost(url):
-    """返回阅卷地址列表"""
+    """返回阅卷地址列表，排除HTML注释中的链接"""
     res = requests.get(url)
+    text = res.text
+    text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
     url_pattern = r'(?<=href="http://)[\d.]+:\d+(?=\s*/?\s*")'
-    urls = re.findall(url_pattern, res.text)
+    urls = re.findall(url_pattern, text)
     return urls
 
 

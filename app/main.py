@@ -55,11 +55,12 @@ async def create_task(request: Request, db: Session = Depends(get_db)):
         first_accounts = form.get('first_accounts', '').strip()
         second_account = form.get('second_account', '').strip()
         mark_password = form.get('mark_password', '').strip()
+        second_password = form.get('second_password', '').strip()
         question_name = form.get('question_name', '').strip()
         server_url = form.get('server_url', 'http://xyyj.jsleascent.com').strip()
         refresh_delay = form.get('refresh_delay', '3').strip()
 
-        if not all([task_name, first_accounts, second_account, mark_password, question_name]):
+        if not all([task_name, first_accounts, second_account, mark_password, second_password, question_name]):
             return templates.TemplateResponse(request, 'create_task.html', {
                 'flash_messages': [('error', '请填写所有必填项')],
                 'session': request.session
@@ -71,6 +72,7 @@ async def create_task(request: Request, db: Session = Depends(get_db)):
             first_accounts=first_accounts,
             second_account=second_account,
             mark_password=mark_password,
+            second_password=second_password,
             question_name=question_name,
             server_url=server_url,
             refresh_delay=int(refresh_delay) if refresh_delay.isdigit() else 2,

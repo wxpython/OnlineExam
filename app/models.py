@@ -55,7 +55,8 @@ class MarkTask(Base):
     task_name = Column(String(200), nullable=False)
     first_accounts = Column(Text, nullable=False)   # 一评账号，逗号分隔
     second_account = Column(String(100), nullable=False)  # 二评账号
-    mark_password = Column(String(200), nullable=False)   # 阅卷系统密码
+    mark_password = Column(String(200), nullable=False)   # 一评账号密码
+    second_password = Column(String(200), nullable=False)  # 二评账号密码
     question_name = Column(String(50), nullable=False)    # 试题名称
     server_url = Column(String(300), default='http://xyyj.jsleascent.com')
     refresh_delay = Column(Integer, default=3)   # 刷新任务时的延迟（秒）
