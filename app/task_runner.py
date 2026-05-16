@@ -75,9 +75,9 @@ def _execute_task(task_id):
 
         try:
             # 解析配置
-            first_accounts = [a.strip() for a in task.first_accounts.split(',') if a.strip()]
+            first_accounts = [a.strip() for a in task.first_accounts.split('-') if a.strip()]
+            first_passwords = [p.strip() for p in task.mark_password.split('-') if p.strip()]
             second_account = task.second_account
-            mark_pwd = task.mark_password
             second_pwd = task.second_password
             q_name = task.question_name
 
@@ -103,16 +103,17 @@ def _execute_task(task_id):
             all_paper_data = []
             host = ''
 
-            for name in first_accounts:
+            for idx, name in enumerate(first_accounts):
                 if task.status == 'stopped':
                     return
 
+                pwd = first_passwords[idx] if idx < len(first_passwords) else first_passwords[-1]
                 found = False
                 for h in all_hosts:
                     if not _ping_host(h):
                         log(f'服务器 {h} 不在线，跳过')
                         continue
-                    on_mark = OnlineMark(name, mark_pwd, h, log_callback=log)
+                    on_mark = OnlineMark(name, pwd, h, log_callback=log)
                     # 注册到全局任务管理
                     with _task_lock:
                         _running_tasks[task_id] = on_mark
