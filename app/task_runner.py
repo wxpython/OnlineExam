@@ -66,9 +66,12 @@ def _execute_task(task_id):
         db.commit()
 
         def log(msg):
-            task.append_log(msg)
-            db.commit()
-            db.refresh(task)
+            try:
+                task.append_log(msg)
+                db.commit()
+                db.refresh(task)
+            except Exception:
+                db.rollback()
 
         try:
             # 解析配置
@@ -153,22 +156,28 @@ def _execute_task(task_id):
             log(f'开始二评提交, 账号: {second_account}')
 
             def on_progress(marked):
-                task.marked_papers = marked
-                if task.total_papers > 0:
-                    task.progress = int(marked / task.total_papers * 100)
-                db.commit()
-                db.refresh(task)
-
-            def on_progress_from_api(lesson_id, ques_id):
-                progress = other_mark.getProgress(lesson_id, ques_id)
-                if progress and progress.get('total', 0) > 0:
-                    total = progress['total']
-                    marked = progress['marked']
-                    task.total_papers = total
+                try:
                     task.marked_papers = marked
-                    task.progress = int(marked / total * 100)
+                    if task.total_papers > 0:
+                        task.progress = int(marked / task.total_papers * 100)
                     db.commit()
                     db.refresh(task)
+                except Exception:
+                    db.rollback()
+
+            def on_progress_from_api(lesson_id, ques_id):
+                try:
+                    progress = other_mark.getProgress(lesson_id, ques_id)
+                    if progress and progress.get('total', 0) > 0:
+                        total = progress['total']
+                        marked = progress['marked']
+                        task.total_papers = total
+                        task.marked_papers = marked
+                        task.progress = int(marked / total * 100)
+                        db.commit()
+                        db.refresh(task)
+                except Exception:
+                    db.rollback()
 
             other_mark = None
             if host:
@@ -220,9 +229,12 @@ def _execute_task(task_id):
 
         except Exception as e:
             log(f'任务异常: {str(e)}')
-            task.status = 'failed'
-            task.finished_at = datetime.utcnow()
-            db.commit()
+            try:
+                task.status = 'failed'
+                task.finished_at = datetime.utcnow()
+                db.commit()
+            except Exception:
+                db.rollback()
 
         finally:
             # 清理全局任务管理

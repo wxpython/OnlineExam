@@ -78,7 +78,7 @@ class MarkTask(Base):
     def append_log(self, msg):
         timestamp = datetime.now().strftime('%H:%M:%S')
         self.log_text = self.log_text + f"[{timestamp}] {msg}\n"
-        # 保留最近500行日志
+        # 保留最近50行日志
         lines = self.log_text.split('\n')
-        if len(lines) > 500:
-            self.log_text = '\n'.join(lines[-500:])
+        if len(lines) > 50:
+            self.log_text = '\n'.join(lines[-50:])
